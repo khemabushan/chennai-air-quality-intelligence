@@ -1,0 +1,106 @@
+{
+  "val": [
+    {
+      "model": "lstm",
+      "n": 1053,
+      "MAE": 8.785,
+      "RMSE": 14.2932,
+      "R2": 0.8692,
+      "sMAPE": 12.088,
+      "MAE_improvement_vs_persistence_%": 38.2107,
+      "RMSE_improvement_vs_persistence_%": 36.8815
+    },
+    {
+      "model": "xgboost",
+      "n": 1053,
+      "MAE": 9.9362,
+      "RMSE": 15.3291,
+      "R2": 0.8496,
+      "sMAPE": 13.3877,
+      "MAE_improvement_vs_persistence_%": 30.1137,
+      "RMSE_improvement_vs_persistence_%": 32.3069
+    },
+    {
+      "model": "random_forest",
+      "n": 1053,
+      "MAE": 10.0934,
+      "RMSE": 16.0212,
+      "R2": 0.8357,
+      "sMAPE": 13.8032,
+      "MAE_improvement_vs_persistence_%": 29.0082,
+      "RMSE_improvement_vs_persistence_%": 29.2506
+    },
+    {
+      "model": "persistence",
+      "n": 1053,
+      "MAE": 14.2177,
+      "RMSE": 22.645,
+      "R2": 0.6717,
+      "sMAPE": 19.0538,
+      "MAE_improvement_vs_persistence_%": 0.0,
+      "RMSE_improvement_vs_persistence_%": 0.0
+    },
+    {
+      "model": "seasonal_naive",
+      "n": 1053,
+      "MAE": 24.6945,
+      "RMSE": 35.6985,
+      "R2": 0.1841,
+      "sMAPE": 32.1007,
+      "MAE_improvement_vs_persistence_%": -73.6888,
+      "RMSE_improvement_vs_persistence_%": -57.6437
+    }
+  ],
+  "test": [
+    {
+      "model": "lstm",
+      "n": 1046,
+      "MAE": 11.0067,
+      "RMSE": 35.4258,
+      "R2": 0.6079,
+      "sMAPE": 13.4819,
+      "MAE_improvement_vs_persistence_%": 39.7223,
+      "RMSE_improvement_vs_persistence_%": 9.0323
+    },
+    {
+      "model": "xgboost",
+      "n": 1046,
+      "MAE": 13.0329,
+      "RMSE": 36.9488,
+      "R2": 0.5735,
+      "sMAPE": 16.6865,
+      "MAE_improvement_vs_persistence_%": 28.626,
+      "RMSE_improvement_vs_persistence_%": 5.1216
+    },
+    {
+      "model": "random_forest",
+      "n": 1046,
+      "MAE": 13.7695,
+      "RMSE": 37.9497,
+      "R2": 0.55,
+      "sMAPE": 18.2114,
+      "MAE_improvement_vs_persistence_%": 24.5923,
+      "RMSE_improvement_vs_persistence_%": 2.5515
+    },
+    {
+      "model": "persistence",
+      "n": 1046,
+      "MAE": 18.26,
+      "RMSE": 38.9433,
+      "R2": 0.5262,
+      "sMAPE": 23.483,
+      "MAE_improvement_vs_persistence_%": 0.0,
+      "RMSE_improvement_vs_persistence_%": 0.0
+    },
+    {
+      "model": "seasonal_naive",
+      "n": 1046,
+      "MAE": 34.2183,
+      "RMSE": 69.5467,
+      "R2": -0.5112,
+      "sMAPE": 40.6361,
+      "MAE_improvement_vs_persistence_%": -87.3944,
+      "RMSE_improvement_vs_persistence_%": -78.5845
+    }
+  ]
+}

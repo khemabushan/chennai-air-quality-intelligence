@@ -1,0 +1,4 @@
+# Keep original dataset bytes exactly as published (SHA-256 verified).
+data/raw/** -text
+*.keras binary
+*.gz binary

@@ -1,0 +1,10 @@
+{
+  "raw_rows": 6184,
+  "calendar_rows": 6576,
+  "eligible_origins": 5976,
+  "per_split": {
+    "test": 1063,
+    "train": 3831,
+    "val": 1082
+  }
+}

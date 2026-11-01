@@ -1,0 +1,8 @@
+# Runtime dependencies for the Streamlit dashboard (Streamlit Community Cloud).
+# TensorFlow is intentionally excluded: LSTM predictions are pre-computed.
+streamlit==1.60.0
+pandas==3.0.6
+numpy==1.26.4
+plotly==7.1.0
+xgboost==3.2.0
+scikit-learn==1.9.1

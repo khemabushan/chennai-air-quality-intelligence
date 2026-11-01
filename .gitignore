@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ipynb_checkpoints/
+.streamlit/secrets.toml
+*.log
+.DS_Store
+Thumbs.db
+# large / reproducible training artifacts (regenerate with scripts/run_pipeline.py)
+models/random_forest.joblib

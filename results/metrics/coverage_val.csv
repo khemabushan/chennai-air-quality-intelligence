@@ -1,0 +1,6 @@
+model,own_rows
+lstm,1059
+persistence,1082
+random_forest,1082
+seasonal_naive,1053
+xgboost,1082

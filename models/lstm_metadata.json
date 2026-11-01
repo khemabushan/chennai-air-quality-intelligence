@@ -1,0 +1,50 @@
+{
+  "config": {
+    "seq_len": 7,
+    "units": 64,
+    "epochs_run": 22,
+    "best_epoch": 7,
+    "val_n": 1059,
+    "val_MAE": 8.76225703422251,
+    "val_RMSE": 14.259178504221069,
+    "val_R2": 0.8693242905368838,
+    "val_sMAPE": 12.062779652464432
+  },
+  "scaler": {
+    "mean": {
+      "PM2.5": 4.287818015348426,
+      "PM10": 3.8686176945574333,
+      "NO2": 1.9783143662757456,
+      "SO2": 1.2611835920439258,
+      "O3": 2.275408259818477
+    },
+    "std": {
+      "PM2.5": 0.4695800654195366,
+      "PM10": 0.4281625789744425,
+      "NO2": 0.6584755131787398,
+      "SO2": 0.6650382442764934,
+      "O3": 0.7783211984943639
+    }
+  },
+  "static_cols": [
+    "station_Alandur",
+    "station_Kodungaiyur",
+    "station_Manali",
+    "station_Perungudi",
+    "station_Royapuram",
+    "station_Velachery",
+    "target_doy_sin",
+    "target_doy_cos",
+    "target_is_weekend"
+  ],
+  "ffill_limit": 3,
+  "sequence_channels": [
+    "PM2.5",
+    "PM10",
+    "NO2",
+    "SO2",
+    "O3",
+    "pm25_observed_mask"
+  ],
+  "tensorflow_version": "2.17.1"
+}

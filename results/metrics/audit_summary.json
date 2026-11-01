@@ -1,0 +1,9 @@
+{
+  "rows": 6184,
+  "stations": 6,
+  "first": "2022-01-01",
+  "last": "2024-12-31",
+  "hash_ok": true,
+  "pm25_gt_pm10_pct": 84.3,
+  "missing_calendar_days": 392
+}
