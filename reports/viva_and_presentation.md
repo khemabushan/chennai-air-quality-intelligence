@@ -23,7 +23,7 @@
 ## 2. Short explanation for professors (≈150 words)
 The project forecasts tomorrow's PM2.5 at six Chennai monitoring stations from today's and earlier
 pollutant readings. I first audited the public Mendeley dataset and found missing dates, a 126-day
-filler value and PM2.5 > PM10 in 84% of rows, which I documented rather than hid. I reindexed each
+filler value, and that the values are US EPA AQI sub-indices from WAQI rather than concentrations. I reindexed each
 station to a daily calendar, built only causal features (lags, trailing rolling statistics,
 co-pollutants, calendar, station), and split the data chronologically by target date: 2022–23 train,
 Jan–Jun 2024 validation, Jul–Dec 2024 test. Tests prove there is no future leakage. I compared
@@ -37,8 +37,8 @@ recent PM2.5 and PM10 dominate. A Streamlit dashboard presents everything.
 >
 > **(0:15)** I used a public Mendeley dataset with three years of daily data. Before modelling I audited
 > it, and found real problems: 392 missing station-days, one station repeating the same value for 126
-> days, and PM2.5 larger than PM10 in 84 percent of rows. I documented all of this and masked only the
-> obvious filler run.
+> days, and values that turned out to be AQI sub-indices rather than concentrations. I documented all of
+> this and masked only the obvious filler run.
 >
 > **(0:40)** The key design rule is no data leakage. At the end of day *t* the model may only use data
 > up to *t*. I built lag and trailing rolling features per station, split the data by date — 2022–23 for
@@ -90,10 +90,10 @@ model's behaviour, not causation in the atmosphere.
 RMSE squares errors, so a few extreme spikes dominate it. Those spikes are not predictable from
 pollutant history alone (they depend on weather and events like festivals).
 
-**Q9. What is the PM2.5 > PM10 problem?**
-PM2.5 is a subset of PM10, so PM2.5 should never exceed PM10. It does in 84% of rows, suggesting a
-labelling or processing issue in the published data. We use columns as labelled and flag this as the
-main limitation.
+**Q9. Why is PM2.5 greater than PM10 in 84% of rows?**
+As concentrations that would be impossible, but the data come from WAQI, which converts every pollutant
+to its US EPA AQI sub-index. EPA breakpoints are much stricter for PM2.5 (AQI 100 ≈ 35 µg/m³) than PM10
+(≈ 154 µg/m³), so the PM2.5 index is usually higher. Our target is the PM2.5 AQI sub-index.
 
 **Q10. Why is the seasonal-naive baseline so poor?**
 Day-to-day persistence is much stronger than any weekly cycle; values from a week ago are often in a
@@ -117,6 +117,6 @@ It is large and not needed at runtime; LSTM predictions are pre-computed, keepin
 - Built an end-to-end next-day PM2.5 forecasting system for 6 Chennai monitoring stations (6,184 daily
   records) with leakage-safe time-series features, chronological validation and 22 automated pytest checks.
 - Trained and compared XGBoost, Random Forest and a TensorFlow/Keras LSTM against persistence baselines;
-  the LSTM reduced test MAE by 40% (11.0 vs 18.3 µg/m³) and XGBoost by 29% on identical held-out targets.
+  the LSTM reduced test MAE by 40% (11.0 vs 18.3 AQI points) and XGBoost by 29% on identical held-out targets.
 - Delivered an explainable Streamlit + Plotly dashboard with TreeSHAP per-forecast explanations and a
-  documented data audit exposing source-data issues (PM2.5 > PM10 in 84% of rows, 126-day filler run).
+  documented data audit that identified the values as US EPA AQI sub-indices and found a 126-day filler run.

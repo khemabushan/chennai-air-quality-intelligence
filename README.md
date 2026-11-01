@@ -42,19 +42,22 @@ Mendeley Data, V1, DOI: [10.17632/br5dyxm7c6.1](https://data.mendeley.com/datase
 | Stations | Alandur, Kodungaiyur, Manali, Perungudi, Royapuram, Velachery |
 | Period | 2022-01-01 → 2024-12-31 (daily) |
 | Records | 6,184 (392 station-days missing from the calendar) |
-| Variables | PM2.5, PM10, NO2, SO2, O3 |
+| Variables | PM2.5, PM10, NO2, SO2, O3 — **US EPA AQI sub-index values** (WAQI), not µg/m³ |
+| Upstream source | WAQI / aqicn.org historic dashboard (per the publisher), cleaned and imputed by the publisher |
+| Licence | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) — Jeyadev R, Anjanaa S, Sukesh S, Satyanarayanaraju CHSRV |
 
 Only the six historical CSVs are used (stored unchanged in `data/raw/`, SHA-256 verified on every run).
 The archive's code, models and reported metrics were **not** reused.
 
 **Key data-quality findings** (full detail in [`reports/data_audit.md`](reports/data_audit.md)):
-- **PM2.5 > PM10 in 84.3% of rows** (median PM2.5 71 vs PM10 48). Physically PM2.5 ⊂ PM10, so a
-  column-labelling or processing issue in the published files is plausible. Columns are used as labelled;
-  all results refer to "PM2.5 as published".
+- **Values are AQI sub-indices, not concentrations.** WAQI states that its data are "converted to the US
+  EPA standard (i.e. no raw concentrations)". This explains why PM2.5 > PM10 in 84.3% of rows: EPA
+  breakpoints are far stricter for PM2.5 (AQI 100 ≈ 35 µg/m³) than PM10 (AQI 100 ≈ 154 µg/m³). The forecast
+  target is therefore the **PM2.5 AQI sub-index**, and all errors below are in **AQI points**.
 - Kodungaiyur reports PM2.5 = 116.0 for **126 consecutive days** (Jan–May 2022) → masked as a filler
   value by a documented QC rule (processed data only).
 - Three stations share a 49-day gap (Nov–Dec 2023); many constant runs in SO2/O3 (instrument floors).
-- The publisher does not document prior cleaning or imputation, so this is not raw sensor data.
+- The publisher states the data were cleaned and imputed, so this is not raw sensor data.
 
 ## Architecture
 ```
@@ -95,7 +98,7 @@ calendar (day-of-week, month, cyclical day-of-year, weekend); station one-hot.
 | LSTM | 7-day window × (5 pollutants + observed mask) → LSTM(64) → concat(station one-hot, target calendar) → Dense(16, ReLU) → Dense(1); log1p + z-score scaling fitted on training period only; Adam, MSE, early stopping (patience 15); 4-config grid over window {7,14} × units {32,64} |
 
 ## Results (genuine, test period Jul–Dec 2024)
-All models scored on the **same 1,046 station-days**.
+All models scored on the **same 1,046 station-days**. Errors are in PM2.5 AQI points.
 
 | Model | MAE | RMSE | R² | sMAPE % | MAE vs persistence |
 |---|---:|---:|---:|---:|---:|
@@ -170,7 +173,8 @@ Python 3.11 · pandas · NumPy · scikit-learn · XGBoost · TensorFlow/Keras ·
 Plotly · Streamlit · pytest
 
 ## Limitations
-- PM2.5/PM10 labelling inconsistency in the source data (see above).
+- Target is the US EPA PM2.5 AQI sub-index (non-linear in concentration), not µg/m³; the publisher's
+  cleaning/imputation is only briefly described.
 - No meteorological inputs (wind, rainfall, humidity, boundary-layer height), which drive day-to-day changes.
 - Single-seed LSTM; no prediction intervals; one-day horizon only.
 - Historical backtest — the data ends in December 2024.

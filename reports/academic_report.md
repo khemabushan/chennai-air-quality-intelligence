@@ -8,11 +8,12 @@
 ## 1. Abstract
 We forecast next-day PM2.5 concentration at six Chennai monitoring stations using three years
 (2022–2024) of daily pollutant data from a public Mendeley dataset. A data audit revealed missing
-dates, a 126-day constant filler run, and PM2.5 exceeding PM10 in 84.3% of records. We built a
+dates and a 126-day constant filler run, and established from the upstream source (WAQI) that the
+values are US EPA AQI sub-indices rather than concentrations. We built a
 leakage-safe pipeline (daily calendar reindexing, causal lag and rolling features, labels never
 imputed) and compared two baselines (persistence, weekly seasonal-naive) with XGBoost, Random Forest
 and a station-aware LSTM, using a chronological split by target date. On the held-out test period
-(July–December 2024, 1,046 common station-days) the LSTM achieved MAE 11.01 µg/m³ (R² 0.61), a 39.7%
+(July–December 2024, 1,046 common station-days) the LSTM achieved MAE 11.01 AQI points (R² 0.61), a 39.7%
 MAE reduction over persistence (18.26), followed by XGBoost (13.03, −28.6%). RMSE gains were modest
 (5–9%) because rare extreme spikes dominate squared error. TreeSHAP showed that same-day PM10 and PM2.5
 and short rolling means drive XGBoost forecasts. A Streamlit dashboard presents the historical data,
@@ -60,10 +61,14 @@ models improve meaningfully over simple baselines when evaluated honestly on uns
 | Period | 1 Jan 2022 – 31 Dec 2024 (daily) |
 | Records | 6,184 of 6,576 possible station-days (392 missing) |
 | Variables | PM2.5, PM10, NO2, SO2, O3 (no missing values within recorded rows; no negatives) |
+| Units | US EPA AQI sub-index per pollutant (WAQI converts all species; "no raw concentrations") |
+| Upstream | WAQI / aqicn.org historic dashboard; cleaned and imputed by the publisher |
+| Licence | CC BY 4.0 |
 
 Key issues (see `reports/data_audit.md`):
-- PM2.5 > PM10 in 84.3% of rows (60.9% Kodungaiyur – 97.3% Alandur); median PM2.5 71 vs PM10 48.
-  This is physically implausible and suggests a labelling or processing issue in the published files.
+- PM2.5 > PM10 in 84.3% of rows (60.9% Kodungaiyur – 97.3% Alandur); median 71 vs 48. This would be
+  impossible for concentrations but is expected for AQI sub-indices, because US EPA breakpoints are far
+  stricter for PM2.5 (AQI 100 ≈ 35 µg/m³) than PM10 (AQI 100 ≈ 154 µg/m³). It confirmed the unit finding.
 - A shared 49-day gap (12 Nov – 30 Dec 2023) at Kodungaiyur, Perungudi and Royapuram.
 - Kodungaiyur PM2.5 = 116.0 for 126 consecutive days (Jan–May 2022) — masked as filler.
 - Many constant runs in SO2 and O3 (likely instrument floors); extreme values up to 790.
@@ -136,7 +141,7 @@ Windows 11, Python 3.11, CPU only. pandas 3.0, scikit-learn 1.9, XGBoost 3.2, Te
 SHAP 0.49, Streamlit 1.60. Full pipeline: `python scripts/run_pipeline.py`; tests: `pytest` (22 tests).
 
 ## 12. Evaluation metrics
-- **MAE** = mean |y − ŷ| (µg/m³) — primary selection metric, robust to outliers.
+- **MAE** = mean |y − ŷ| (AQI points) — primary selection metric, robust to outliers.
 - **RMSE** = √mean (y − ŷ)² — penalises large errors.
 - **R²** = 1 − SS_res / SS_tot — share of variance explained.
 - **sMAPE** = mean 2|y − ŷ| / (|y| + |ŷ|) × 100 %.
@@ -179,10 +184,10 @@ RF 10.09 (0.836), persistence 14.22 (0.672), seasonal naive 24.69 (0.184).
    These are model associations, not causal effects.
 
 ## 14. Limitations
-- PM2.5/PM10 inconsistency in the source data limits physical interpretation of results.
+- The target is an AQI sub-index (piecewise-linear in concentration), not a concentration in µg/m³.
 - No meteorological variables; a one-day horizon only; point forecasts without uncertainty.
 - Single random seed for the LSTM; one chronological test window (six months).
-- Publisher's preprocessing is undocumented; the 126-day filler run shows some values are not measurements.
+- Publisher's cleaning/imputation is only briefly described; the 126-day filler run shows some values are not measurements.
 - Historical backtest only — the data ends in December 2024.
 
 ## 15. Conclusion
@@ -203,4 +208,5 @@ multi-seed ensembles with prediction intervals, and multi-day horizons.
    trees," *Nature Machine Intelligence*, 2, 2020.
 6. R. J. Hyndman and G. Athanasopoulos, *Forecasting: Principles and Practice*, 3rd ed., OTexts, 2021.
 7. L. Breiman, "Random Forests," *Machine Learning*, 45, 2001.
-8. Central Pollution Control Board (India), National Ambient Air Quality Standards, 2009.
+8. World Air Quality Index Project, "Air Quality Open Data Platform", https://aqicn.org/data-platform/
+9. U.S. EPA, *Technical Assistance Document for the Reporting of Daily Air Quality — the AQI*, 2018/2024.

@@ -25,7 +25,7 @@ GitHub account.
 
 ## Completed
 - Data audit + 6 EDA figures → `reports/data_audit.md`.
-- Findings: 392 missing station-days; PM2.5 > PM10 in 84.3% of rows (possible label swap, documented);
+- Findings: 392 missing station-days; values are US EPA AQI sub-indices from WAQI (explains PM2.5 > PM10 in 84.3% of rows);
   Kodungaiyur 126-day constant PM2.5 run (masked by a documented QC rule); 49-day shared gap in Nov–Dec 2023.
 - Daily calendar preprocessing, 28 causal features, split by target date (train 3,831 / val 1,082 / test 1,063).
 - Models: persistence, seasonal naive, XGBoost (24-config grid), Random Forest (4 configs), LSTM (4 configs).

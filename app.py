@@ -130,10 +130,10 @@ using only pollutant observations available up to day *t*.
     audit = json.loads((METRICS_DIR / "audit_summary.json").read_text())
     st.markdown(f"""
 * **{audit['missing_calendar_days']:,} missing station-days** on the 2022–2024 calendar, including long gaps at some stations.
-* **PM2.5 exceeds PM10 in {audit['pm25_gt_pm10_pct']}% of records** — physically implausible, indicating
-  measurement or processing issues in the source data.
+* **Values are US EPA AQI sub-indices, not µg/m³.** The source (WAQI) converts every pollutant to its
+  AQI sub-index, which is why PM2.5 exceeds PM10 in {audit['pm25_gt_pm10_pct']}% of records. Errors are in AQI points.
 * Repeated constant readings and apparent instrument floors (especially SO₂ / O₃).
-* The publisher does not state whether values were cleaned or imputed, so this is not raw sensor data.
+* The publisher states the data were cleaned and imputed, so this is not raw sensor data.
 * No meteorological variables (wind, rain, humidity) are available, which limits achievable accuracy.
 """)
 
@@ -334,8 +334,10 @@ def page_about():
 ### Dataset
 *Hybrid Prophet-XGBoost Forecasting for Urban Air Quality with Real-Time Data Integration for Chennai*,
 Mendeley Data, DOI [10.17632/br5dyxm7c6.1](https://data.mendeley.com/datasets/br5dyxm7c6/1).
-Only the six historical station CSVs (2022–2024) are used; their SHA-256 hashes are verified on every
-pipeline run. The original archive's code, models and reported metrics were **not** reused.
+Licence **CC BY 4.0** — contributors Jeyadev R, Anjanaa S, Sukesh S, Satyanarayanaraju CHSRV. Upstream
+source: WAQI / aqicn.org historic data, where every pollutant is reported as a **US EPA AQI sub-index**
+(not a raw concentration). Only the six historical station CSVs (2022–2024) are used; their SHA-256
+hashes are verified on every pipeline run. The original archive's code, models and reported metrics were **not** reused.
 
 ### Methodology
 1. **Audit** — coverage, gaps, duplicates, outliers, PM2.5 > PM10, constant runs (documented, not altered).
@@ -350,7 +352,7 @@ pipeline run. The original archive's code, models and reported metrics were **no
 
 ### Limitations
 * No meteorological inputs; only five pollutants are available.
-* Source data quality issues (PM2.5 > PM10, constant runs, gaps; undocumented pre-processing by the publisher).
+* Target is the PM2.5 AQI sub-index, not µg/m³; constant runs and gaps; publisher-side cleaning/imputation.
 * Results are a historical backtest; the data ends in December 2024.
 * Forecasts are point estimates without uncertainty intervals.
 
