@@ -13,7 +13,7 @@ import streamlit as st
 from src.config import DATA_PROCESSED, FIGURES_DIR, METRICS_DIR, POLLUTANTS, PREDICTIONS_DIR, RESULTS_DIR, STATIONS
 from src.inference import forecast_from_daily, load_xgboost
 
-GITHUB_URL = "https://github.com/"  # replaced with the repository URL once published
+GITHUB_URL = "https://github.com/khemabushan/chennai-air-quality-intelligence"
 
 MODEL_LABELS = {
     "persistence": "Persistence (baseline)",
@@ -33,6 +33,7 @@ st.markdown("""
   h1, h2, h3 {letter-spacing: -0.01em;}
   div[data-testid="stMetric"] {background: var(--secondary-background-color); border-radius: 10px;
       padding: 0.8rem 1rem; border: 1px solid rgba(128,128,128,0.15);}
+  div[data-testid="stMetricValue"] {font-size: 1.6rem;}
   .caqi-note {border-left: 4px solid #e07a2f; padding: 0.6rem 1rem; border-radius: 6px;
       background: rgba(224,122,47,0.08); margin: 0.5rem 0 1rem 0;}
 </style>
@@ -72,6 +73,18 @@ def note(text: str) -> None:
     st.markdown(f'<div class="caqi-note">{text}</div>', unsafe_allow_html=True)
 
 
+PCT_LABELS = {"MAE_improvement_vs_persistence_%": "MAE gain vs persistence (%)",
+              "RMSE_improvement_vs_persistence_%": "RMSE gain vs persistence (%)"}
+
+
+def metric_table(df: pd.DataFrame) -> None:
+    """Numeric metrics table with two-decimal formatting via column_config (keeps values numeric)."""
+    df = df.rename(columns=PCT_LABELS)
+    num = df.select_dtypes("number").columns
+    cfg = {c: st.column_config.NumberColumn(c, format="%d" if c == "n" else "%.2f") for c in num}
+    st.dataframe(df, column_config=cfg, hide_index=True, width="stretch")
+
+
 def fig_layout(fig, height=420):
     fig.update_layout(height=height, margin=dict(l=10, r=10, t=40, b=10), legend_title_text="",
                       hovermode="x unified")
@@ -100,16 +113,18 @@ def page_overview():
     st.title("Chennai Air Quality Intelligence")
     st.markdown("##### Explainable multi-station PM2.5 forecasting using machine learning and deep learning")
     note(DATA_NOTE)
-    c = st.columns(5)
-    c[0].metric("Coverage", "2022–24")
-    c[1].metric("Monitoring stations", len(STATIONS))
-    c[2].metric("Station-days", f"{int(daily.observed.sum()):,}")
-    c[3].metric("Forecast samples", f"{counts['eligible_origins']:,}")
-    c[4].metric("Models compared", preds.model.nunique())
+    c = st.columns(3)
+    c[0].metric("Years covered", "2022–24")
+    c[1].metric("Stations", len(STATIONS))
+    c[2].metric("Models", preds.model.nunique())
+    c = st.columns(3)
+    c[0].metric("Station-days", f"{int(daily.observed.sum()):,}")
+    c[1].metric("Forecasts", f"{counts['eligible_origins']:,}")
+    c[2].metric("Test period", "H2 2024")
 
     st.subheader("What this project does")
     st.markdown("""
-At the end of each day *t*, the system predicts the **next day's (t+1) PM2.5 concentration** at six
+At the end of each day *t*, the system predicts the **next day's (t+1) PM2.5 level** (US EPA AQI sub-index) at six
 Chennai monitoring stations — Alandur, Kodungaiyur, Manali, Perungudi, Royapuram and Velachery —
 using only pollutant observations available up to day *t*.
 
@@ -122,9 +137,7 @@ using only pollutant observations available up to day *t*.
     st.subheader("Test-period results (identical targets for all models)")
     t = overall_test.copy()
     t["model"] = t["model"].map(MODEL_LABELS)
-    st.dataframe(t[["model", "n", "MAE", "RMSE", "R2", "sMAPE", "MAE_improvement_vs_persistence_%"]]
-                 .rename(columns={"MAE_improvement_vs_persistence_%": "MAE gain vs persistence (%)"})
-                 .style.format(precision=2), hide_index=True, width="stretch")
+    metric_table(t[["model", "n", "MAE", "RMSE", "R2", "sMAPE", "MAE_improvement_vs_persistence_%"]])
 
     st.subheader("Important dataset limitations")
     audit = json.loads((METRICS_DIR / "audit_summary.json").read_text())
@@ -171,7 +184,7 @@ def page_history():
     s = st.selectbox("Station", stations)
     long = d[d.station == s].melt(id_vars="date", value_vars=POLLUTANTS, var_name="pollutant")
     st.plotly_chart(fig_layout(px.line(long, x="date", y="value", color="pollutant", title=s)), width="stretch")
-    st.dataframe(d[d.station == s][POLLUTANTS].describe().T.style.format(precision=1), width="stretch")
+    st.dataframe(d[d.station == s][POLLUTANTS].describe().T.round(1), width="stretch")
 
 
 def page_forecast():
@@ -249,10 +262,9 @@ def page_comparison():
     note(f"All models are scored on the <b>same {int(ov.n.iloc[0]):,} target days</b> (station-days every model "
          "could forecast). Lower MAE/RMSE/sMAPE is better; higher R² is better.")
     ov_l = ov.assign(label=ov.model.map(MODEL_LABELS))
-    st.dataframe(ov_l[["label", "MAE", "RMSE", "R2", "sMAPE", "MAE_improvement_vs_persistence_%",
-                       "RMSE_improvement_vs_persistence_%"]].rename(columns={"label": "model"})
-                 .style.format(precision=2).highlight_min(subset=["MAE", "RMSE", "sMAPE"], color="#d4edda")
-                 .highlight_max(subset=["R2"], color="#d4edda"), hide_index=True, width="stretch")
+    metric_table(ov_l[["label", "MAE", "RMSE", "R2", "sMAPE", "MAE_improvement_vs_persistence_%",
+                       "RMSE_improvement_vs_persistence_%"]].rename(columns={"label": "model"}))
+    st.caption("Rows are sorted by MAE (best first). Negative gains mean worse than persistence.")
 
     a, b = st.columns(2)
     long = ov_l.melt(id_vars=["model", "label"], value_vars=["MAE", "RMSE"], var_name="metric")
