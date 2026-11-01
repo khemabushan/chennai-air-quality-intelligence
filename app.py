@@ -3,6 +3,7 @@
 Reads only saved artifacts (processed data, saved predictions, metrics, XGBoost model).
 No model is trained at startup and TensorFlow is not needed at runtime.
 """
+import base64
 import json
 
 import pandas as pd
@@ -83,6 +84,13 @@ def metric_table(df: pd.DataFrame) -> None:
     num = df.select_dtypes("number").columns
     cfg = {c: st.column_config.NumberColumn(c, format="%d" if c == "n" else "%.2f") for c in num}
     st.dataframe(df, column_config=cfg, hide_index=True, width="stretch")
+
+
+def show_png(path, max_width: int = 760) -> None:
+    """Embed a PNG inline. st.image's media endpoint returned HTTP 500 on Community Cloud."""
+    data = base64.b64encode(path.read_bytes()).decode()
+    st.markdown(f'<img src="data:image/png;base64,{data}" style="width:100%;max-width:{max_width}px">',
+                unsafe_allow_html=True)
 
 
 def fig_layout(fig, height=420):
@@ -206,12 +214,13 @@ def page_forecast():
     row = p[p.origin_date.dt.date == origin].iloc[0]
     pers = preds[(preds.model == "persistence") & (preds.station == station) & (preds.origin_date == row.origin_date)]
 
-    k = st.columns(4)
-    k[0].metric(f"Target date ({row.target_date.year})", f"{row.target_date.day} {row.target_date:%b}")
-    k[1].metric(f"Predicted PM2.5 ({MODEL_LABELS[model].split(' (')[0]})", f"{row.y_pred:.1f}")
-    k[2].metric("Actual PM2.5", f"{row.y_true:.1f}", delta=f"error {row.y_pred - row.y_true:+.1f}", delta_color="off")
+    st.markdown(f"**Forecast for {row.target_date:%d %b %Y}** · PM2.5 AQI sub-index · "
+                f"model: {MODEL_LABELS[model]}")
+    k = st.columns(3)
+    k[0].metric("Predicted", f"{row.y_pred:.1f}")
+    k[1].metric("Actual", f"{row.y_true:.1f}", delta=f"error {row.y_pred - row.y_true:+.1f}", delta_color="off")
     if not pers.empty:
-        k[3].metric("Persistence forecast", f"{pers.y_pred.iloc[0]:.1f}")
+        k[2].metric("Persistence", f"{pers.y_pred.iloc[0]:.1f}")
 
     hist = daily[(daily.station == station) & daily.date.between(row.origin_date - pd.Timedelta(days=21), row.target_date)]
     fig = go.Figure()
@@ -241,7 +250,7 @@ def page_forecast():
                     labels = [f"{f} = {vals[f]:.1f}" if pd.notna(vals[f]) else f"{f} = missing" for f in contrib.index]
                     fig = go.Figure(go.Bar(x=contrib.values, y=labels, orientation="h",
                                            marker_color=["#c0392b" if v > 0 else "#2a6f97" for v in contrib.values]))
-                    unit = "log(1+PM2.5)" if schema["target_transform"] == "log1p" else "PM2.5"
+                    unit = "log(1+PM2.5)" if schema["target_transform"] == "log1p" else "AQI points"
                     fig.update_layout(title=f"Top SHAP contributions for this forecast ({unit} scale)",
                                       xaxis_title="contribution (red pushes forecast up, blue down)")
                     st.plotly_chart(fig_layout(fig, 400).update_layout(hovermode="closest"), width="stretch")
@@ -312,7 +321,7 @@ def page_comparison():
 
     if (FIGURES_DIR / "lstm_loss_curve.png").exists():
         with st.expander("LSTM training and validation loss"):
-            st.image(str(FIGURES_DIR / "lstm_loss_curve.png"))
+            show_png(FIGURES_DIR / "lstm_loss_curve.png")
 
 
 def page_explain():
@@ -332,7 +341,7 @@ def page_explain():
                    .update_layout(hovermode="closest"), width="stretch")
     if (FIGURES_DIR / "shap_summary.png").exists():
         st.subheader("SHAP summary (beeswarm)")
-        st.image(str(FIGURES_DIR / "shap_summary.png"), width=760)
+        show_png(FIGURES_DIR / "shap_summary.png")
         st.caption("Each dot is one test-period forecast. Colour = feature value (red high, blue low); "
                    "x-position = how much that feature pushed the forecast up or down.")
     st.subheader("Interpretation")
