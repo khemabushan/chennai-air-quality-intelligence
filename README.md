@@ -4,7 +4,8 @@
 
 *Academic title: Air Quality Prediction Using Machine Learning*
 
-> Live demo: _to be added after Streamlit Community Cloud deployment_
+> **Live demo:** https://chennai-air-quality-intelligence.streamlit.app  
+> **Source:** https://github.com/khemabushan/chennai-air-quality-intelligence
 >
 > ⚠️ This is a **historical backtest**. The dataset ends on **31 December 2024**; the app does not
 > produce live forecasts.
@@ -165,8 +166,10 @@ py -3.11 -m venv .venv
 To run only the dashboard: `pip install -r requirements.txt` (no TensorFlow needed).
 
 ## Deployment
-Streamlit Community Cloud → New app → this repository, branch `main`, main file `app.py`,
-Python 3.11. `requirements.txt` contains only runtime packages; all predictions are pre-computed.
+Deployed on Streamlit Community Cloud: **https://chennai-air-quality-intelligence.streamlit.app**
+(repository `khemabushan/chennai-air-quality-intelligence`, branch `main`, main file `app.py`, Python 3.11).
+`requirements.txt` contains only runtime packages (no TensorFlow); all model predictions are pre-computed
+and XGBoost is re-run live in the Forecast Explorer. Pushing to `main` redeploys automatically.
 
 ## Technology stack
 Python 3.11 · pandas · NumPy · scikit-learn · XGBoost · TensorFlow/Keras · SHAP · Matplotlib/Seaborn ·
